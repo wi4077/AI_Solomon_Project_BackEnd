@@ -63,9 +63,16 @@ compression_retriever = ContextualCompressionRetriever(
 
 app = FastAPI()
 
+origins = [
+    "https://ai-solomon-project.vercel.app",  # Vercel 도메인
+    "https://*.vercel.app",              # Vercel 서브도메인 허용
+    "http://localhost:3000",             # 로컬 개발용
+]
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=['*'],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=['*'],
     allow_headers=['*'],

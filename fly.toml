@@ -1,4 +1,4 @@
-# fly.toml app configuration file generated for backend-ai-chatbot-solomon on 2025-07-03T17:37:29+09:00
+# fly.toml app configuration file generated for backend-ai-chatbot-solomon on 2025-07-04T14:17:59+09:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
@@ -9,7 +9,7 @@ primary_region = 'nrt'
 [build]
 
 [deploy]
-  release_command_timeout = "45m"
+  release_command_timeout = '45m0s'
 
 [http_service]
   internal_port = 8000

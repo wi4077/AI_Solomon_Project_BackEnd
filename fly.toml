@@ -8,6 +8,9 @@ primary_region = 'nrt'
 
 [build]
 
+[deploy]
+  release_command_timeout = "45m"
+
 [http_service]
   internal_port = 8000
   force_https = true

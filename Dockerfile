@@ -1,20 +1,38 @@
-FROM python:3.12.10 AS builder
+### ---------- builder stage ----------
+FROM python:3.12.10-slim AS builder
 
+# Faster, deterministic builds
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1
+
 WORKDIR /app
 
-RUN python -m venv .venv
+# 1) create isolated venv in /opt/venv (easier to COPY later)
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# 2) requirements first → leverage Docker layer cache
 COPY requirements.txt ./
-RUN .venv/bin/pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir huggingface-hub
 
+# 3) pre-download Cross-Encoder model so runtime doesn’t fetch it
+ENV HF_HOME=/opt/hf-cache
+RUN huggingface-cli download BAAI/bge-reranker-base --repo-type model --local-dir $HF_HOME/bge-reranker-base
+
+### ---------- runtime stage ----------
 FROM python:3.12.10-slim
+
+# copy venv & HF cache
+COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /opt/hf-cache /opt/hf-cache
+ENV PATH="/opt/venv/bin:$PATH" \
+    HF_HOME=/opt/hf-cache
+
 WORKDIR /app
-COPY --from=builder /app/.venv .venv/
 COPY . .
 
-# (선택) 포트 명시
+# expose & run
 EXPOSE 8000
-
-# app.py 파일의 app 객체를 실행 (파일명에 맞게 수정)
-CMD ["/app/.venv/bin/uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--loop", "asyncio"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_cors import CORS
 from langchain_pinecone import PineconeVectorStore
 from langchain_upstage import ChatUpstage
 from langchain_openai import ChatOpenAI
@@ -14,6 +15,8 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import CrossEncoderReranker
 from langchain_community.cross_encoders import HuggingFaceCrossEncoder
+
+app = FastAPI()
 
 # 환경 변수 가져오기
 load_dotenv()
@@ -61,8 +64,6 @@ compression_retriever = ContextualCompressionRetriever(
     base_compressor=compressor, base_retriever=pinecone_retriever
 )
 
-app = FastAPI()
-
 origins = [
     "https://ai-solomon-project.vercel.app",  # Vercel 도메인
     "https://*.vercel.app",              # Vercel 서브도메인 허용
@@ -71,6 +72,7 @@ origins = [
 
 
 app.add_middleware(
+    CORS,
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
